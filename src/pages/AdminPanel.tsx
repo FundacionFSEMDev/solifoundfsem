@@ -28,16 +28,33 @@ const AdminPanel: React.FC = () => {
   const checkAuthorization = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.email !== 'sistemas@fundacionsanezequiel.org') {
+      
+      if (!user) {
         setIsAuthorized(false);
         setLoading(false);
+        navigate('/login');
         return;
       }
 
-      setIsAuthorized(true);
+      // Check if the user is admin by querying their profile
+      const { data: profile, error } = await supabase
+        .from('loggedusers')
+        .select('email')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+
+      if (profile?.email === 'sistemas@fundacionsanezequiel.org') {
+        setIsAuthorized(true);
+      } else {
+        setIsAuthorized(false);
+      }
+      
     } catch (error) {
       console.error('Error checking authorization:', error);
       setIsAuthorized(false);
+    } finally {
       setLoading(false);
     }
   };
