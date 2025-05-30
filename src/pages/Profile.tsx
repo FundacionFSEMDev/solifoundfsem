@@ -5,7 +5,7 @@ import LoggedNavbar from '../components/LoggedNavbar';
 import InformacionPersonal from '../components/InformacionPersonal';
 import Formacion from '../components/Formacion';
 import ExpLaboral from '../components/ExpLaboral';
-import { Education, WorkExperience, CVFile, UserProfile, Achievement } from '../types';
+import { Education, WorkExperience, CVFile, UserProfile } from '../types';
 
 type TabType = 'personal' | 'education' | 'experience';
 
@@ -21,47 +21,13 @@ const Profile: React.FC = () => {
   const [education, setEducation] = useState<Education[]>([]);
   const [workExperience, setWorkExperience] = useState<WorkExperience[]>([]);
   const [cvFile, setCvFile] = useState<CVFile | null>(null);
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>('personal');
 
   useEffect(() => {
     checkUser();
     fetchEducation();
     fetchWorkExperience();
-    fetchAchievements();
   }, []);
-
-  const fetchAchievements = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('user_achievements')
-        .select(`
-          earned_at,
-          achievements (
-            achievement_unlockcode:id,
-            name,
-            description
-          )
-        `)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      const formattedAchievements = data.map(item => ({
-        id: item.achievements.achievement_unlockcode,
-        name: item.achievements.name,
-        description: item.achievements.description,
-        earned_at: item.earned_at
-      }));
-
-      setAchievements(formattedAchievements);
-    } catch (error) {
-      console.error('Error fetching achievements:', error);
-    }
-  };
 
   const fetchEducation = async () => {
     try {
@@ -300,7 +266,6 @@ const Profile: React.FC = () => {
                 <InformacionPersonal
                   userProfile={userProfile}
                   cvFile={cvFile}
-                  achievements={achievements}
                   onUpdateProfile={(updatedProfile) => {
                     setUserProfile(prev => prev ? { ...prev, ...updatedProfile } : null);
                   }}
