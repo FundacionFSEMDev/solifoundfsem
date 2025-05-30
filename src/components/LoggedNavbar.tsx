@@ -11,7 +11,7 @@ const supabase = createClient(
 const LoggedNavbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -27,7 +27,11 @@ const LoggedNavbar: React.FC = () => {
   const checkAdminStatus = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      setIsAdmin(user?.id === '597ea0f1-5ed3-4764-8260-eabb8602b44a');
+      if (user?.email === 'sistemas@fundacionsanezequiel.org') {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
     } catch (error) {
       console.error('Error checking admin status:', error);
       setIsAdmin(false);
@@ -65,6 +69,14 @@ const LoggedNavbar: React.FC = () => {
           </Link>
 
           <nav className="hidden md:flex items-center space-x-6">
+            {isAdmin && (
+              <Link 
+                to="/adminpanel" 
+                className={`nav-link ${location.pathname === '/adminpanel' ? 'text-primary' : 'text-gray-800'}`}
+              >
+                Panel Admin
+              </Link>
+            )}
             <Link 
               to="/profile" 
               className={`nav-link ${location.pathname === '/profile' ? 'text-primary' : 'text-gray-800'}`}
@@ -95,14 +107,6 @@ const LoggedNavbar: React.FC = () => {
             >
               Citas
             </Link>
-            {isAdmin && (
-              <Link 
-                to="/adminpanel" 
-                className={`nav-link ${location.pathname === '/adminpanel' ? 'text-primary' : 'text-gray-800'}`}
-              >
-                Panel Admin
-              </Link>
-            )}
             <button
               onClick={handleLogout}
               className="nav-link text-red-500 hover:text-red-600"
@@ -128,6 +132,14 @@ const LoggedNavbar: React.FC = () => {
       {isMenuOpen && (
         <div className="md:hidden bg-white p-4 shadow-lg animate-fade-in">
           <div className="flex flex-col space-y-4">
+            {isAdmin && (
+              <Link 
+                to="/adminpanel" 
+                className={`nav-link-mobile ${location.pathname === '/adminpanel' ? 'text-primary' : 'text-gray-800'}`}
+              >
+                Panel Admin
+              </Link>
+            )}
             <Link 
               to="/profile" 
               className={`nav-link-mobile ${location.pathname === '/profile' ? 'text-primary' : 'text-gray-800'}`}
@@ -158,14 +170,6 @@ const LoggedNavbar: React.FC = () => {
             >
               Citas
             </Link>
-            {isAdmin && (
-              <Link 
-                to="/adminpanel" 
-                className={`nav-link-mobile ${location.pathname === '/adminpanel' ? 'text-primary' : 'text-gray-800'}`}
-              >
-                Panel Admin
-              </Link>
-            )}
             <button
               onClick={handleLogout}
               className="nav-link-mobile text-red-500 hover:text-red-600 w-full text-left"
