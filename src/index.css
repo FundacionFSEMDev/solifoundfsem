@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #5d0008;
+  --primary-light: #8a000c;
+  --primary-dark: #3d0006;
+  --secondary: #f8f0f1;
+  --accent: #ffc107;
+  --text-dark: #333333;
+  --text-light: #ffffff;
+  --gray-light: #f5f5f5;
+  --gray: #e0e0e0;
+  --gray-dark: #9e9e9e;
+}
+
+@layer base {
+  html {
+    font-family: 'Be Vietnam Pro', sans-serif;
+  }
+  
+  body {
+    @apply text-[var(--text-dark)] bg-white;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-5 py-2 rounded-full font-medium transition-all duration-300 inline-block text-sm;
+  }
+  
+  .btn-primary {
+    @apply bg-[var(--primary)] text-white hover:bg-[var(--primary-light)] shadow-sm hover:shadow-md hover:scale-105;
+  }
+  
+  .btn-secondary {
+    @apply bg-white text-[var(--primary)] border border-[var(--primary)] hover:bg-[var(--secondary)] shadow-sm hover:shadow-md hover:scale-105;
+  }
+  
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .form-input {
+    @apply w-full px-4 py-3 rounded-md border border-[var(--gray)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium mb-1;
+  }
+
+  .form-error {
+    @apply text-red-500 text-sm mt-1;
+  }
+
+  .nav-link {
+    @apply text-sm font-medium transition-colors hover:text-primary hover:scale-105;
+  }
+
+  .nav-link-mobile {
+    @apply font-medium py-2 transition-colors;
+  }
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scale-in {
+  animation: scaleIn 0.3s ease-in-out;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
