@@ -93,29 +93,28 @@ const UsersTab: React.FC = () => {
     }
 
     try {
-      const { error: educationError } = await supabase
+      // Delete education records
+      await supabase
         .from('education')
         .delete()
         .eq('user_id', userId);
 
-      if (educationError) throw educationError;
-
-      const { error: experienceError } = await supabase
+      // Delete work experience records
+      await supabase
         .from('work_experience')
         .delete()
         .eq('user_id', userId);
 
-      if (experienceError) throw experienceError;
-
-      const { error: profileError } = await supabase
+      // Delete user profile
+      const { error } = await supabase
         .from('loggedusers')
         .delete()
-        .eq('user_id', userId);
+        .eq('id', userId);
 
-      if (profileError) throw profileError;
+      if (error) throw error;
 
       // Update local state
-      setUsers(users.filter(user => user.user_id !== userId));
+      setUsers(users.filter(user => user.id !== userId));
       setUserDetails(null);
       alert('Usuario eliminado correctamente');
     } catch (error) {
@@ -200,7 +199,7 @@ const UsersTab: React.FC = () => {
             {users.map((user) => (
               <tr 
                 key={user.id} 
-                className={`hover:bg-gray-50 ${selectedUserId === user.user_id ? 'bg-gray-50' : ''}`}
+                className={`hover:bg-gray-50 ${selectedUserId === user.id ? 'bg-gray-50' : ''}`}
               >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
