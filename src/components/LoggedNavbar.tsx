@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
@@ -12,7 +12,17 @@ const LoggedNavbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
   const location = useLocation();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   const checkAdminStatus = useCallback(async () => {
     try {
@@ -93,6 +103,12 @@ const LoggedNavbar: React.FC = () => {
                 Panel Admin
               </Link>
             )}
+            <button
+              onClick={handleLogout}
+              className="nav-link text-red-500 hover:text-red-600"
+            >
+              Cerrar Sesión
+            </button>
           </nav>
 
           <button 
@@ -150,6 +166,12 @@ const LoggedNavbar: React.FC = () => {
                 Panel Admin
               </Link>
             )}
+            <button
+              onClick={handleLogout}
+              className="nav-link-mobile text-red-500 hover:text-red-600 w-full text-left"
+            >
+              Cerrar Sesión
+            </button>
           </div>
         </div>
       )}
