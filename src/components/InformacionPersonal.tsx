@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Pencil, Trophy, FileUp, X } from 'lucide-react';
+import { Pencil, FileUp, X } from 'lucide-react';
 import { UserProfile, Achievement, CVFile } from '../types';
 
 const supabase = createClient(
@@ -11,7 +11,6 @@ const supabase = createClient(
 interface InformacionPersonalProps {
   userProfile: UserProfile;
   cvFile: CVFile | null;
-  achievements: Achievement[];
   onUpdateProfile: (updatedProfile: Partial<UserProfile>) => void;
   onUpdateCV: (cvFile: CVFile | null) => void;
 }
@@ -19,7 +18,6 @@ interface InformacionPersonalProps {
 const InformacionPersonal: React.FC<InformacionPersonalProps> = ({
   userProfile,
   cvFile,
-  achievements,
   onUpdateProfile,
   onUpdateCV
 }) => {
@@ -356,42 +354,6 @@ const InformacionPersonal: React.FC<InformacionPersonalProps> = ({
             </div>
           </div>
         )}
-
-        {/* Achievements Section */}
-        <div className="mt-8 pt-8 border-t border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800 mb-6 flex items-center">
-            <Trophy size={20} className="mr-2 text-primary" />
-            Logros
-          </h3>
-          
-          {achievements.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">
-              Aún no has conseguido ningún logro. ¡Completa tu perfil para empezar!
-            </p>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {achievements.map((achievement) => (
-                <div
-                  key={achievement.id}
-                  className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <div className="flex flex-col items-center text-center">
-                    <Trophy size={48} className="text-primary mb-3" />
-                    <h4 className="font-medium text-gray-900 mb-1">
-                      {achievement.name}
-                    </h4>
-                    <p className="text-sm text-gray-500">
-                      {achievement.description}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-2">
-                      Conseguido el {new Date(achievement.earned_at).toLocaleDateString('es-ES')}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </>
   );

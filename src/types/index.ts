@@ -32,13 +32,6 @@ export interface UserProfile {
   cv_updated_at?: string;
 }
 
-export interface Achievement {
-  id: string;
-  name: string;
-  description: string;
-  earned_at: string;
-}
-
 export interface FormErrors {
   [key: string]: string;
 }
