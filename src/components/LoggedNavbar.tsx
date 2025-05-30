@@ -1,11 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 const LoggedNavbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
+
+  const checkAdminStatus = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAdmin(user?.id === '597ea0f1-5ed3-4764-8260-eabb8602b44a');
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      setIsAdmin(false);
+    }
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -13,8 +30,9 @@ const LoggedNavbar: React.FC = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
+    checkAdminStatus();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [checkAdminStatus]);
 
   useEffect(() => {
     setIsMenuOpen(false);
@@ -67,6 +85,14 @@ const LoggedNavbar: React.FC = () => {
             >
               Citas
             </Link>
+            {isAdmin && (
+              <Link 
+                to="/adminpanel" 
+                className={`nav-link ${location.pathname === '/adminpanel' ? 'text-primary' : 'text-gray-800'}`}
+              >
+                Panel Admin
+              </Link>
+            )}
           </nav>
 
           <button 
@@ -116,6 +142,14 @@ const LoggedNavbar: React.FC = () => {
             >
               Citas
             </Link>
+            {isAdmin && (
+              <Link 
+                to="/adminpanel" 
+                className={`nav-link-mobile ${location.pathname === '/adminpanel' ? 'text-primary' : 'text-gray-800'}`}
+              >
+                Panel Admin
+              </Link>
+            )}
           </div>
         </div>
       )}

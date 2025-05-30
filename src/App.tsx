@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Registro from './pages/Registro';
 import Profile from './pages/Profile';
 import Navbar from './components/Navbar';
+import AdminPanel from './pages/AdminPanel';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
             <Route path="/login" element={<><Navbar /><Login /></>} />
             <Route path="/registro" element={<><Navbar /><Registro /></>} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/adminpanel" element={<AdminPanel />} />
             <Route path="/" element={<Navigate to="/solifound\" replace />} />
           </Routes>
         </main>
