@@ -59,3 +59,9 @@ export interface CVFile {
   filename: string;
   lastUpdated: string;
 }
+
+export interface AdminPanelTab {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ size?: number }>;
+}
