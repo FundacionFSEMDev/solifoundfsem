@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Download, Trash2 } from 'lucide-react';
+import { Download, Trash2, Eye, GraduationCap, Briefcase } from 'lucide-react';
 import { UserProfile, Education, WorkExperience } from '../../types';
 
 const supabase = createClient(
@@ -10,9 +10,12 @@ const supabase = createClient(
 
 const UsersTab: React.FC = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const [userEducation, setUserEducation] = useState<Education[]>([]);
-  const [userExperience, setWorkExperience] = useState<WorkExperience[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [userDetails, setUserDetails] = useState<{
+    education: Education[];
+    experience: WorkExperience[];
+  } | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -20,6 +23,7 @@ const UsersTab: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('loggedusers')
         .select('*')
@@ -29,6 +33,8 @@ const UsersTab: React.FC = () => {
       setUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,7 +47,7 @@ const UsersTab: React.FC = () => {
         .order('fecha_inicio', { ascending: false });
 
       if (error) throw error;
-      setUserEducation(data || []);
+      return data || [];
     } catch (error) {
       console.error('Error fetching user education:', error);
     }
@@ -56,18 +62,29 @@ const UsersTab: React.FC = () => {
         .order('fecha_inicio', { ascending: false });
 
       if (error) throw error;
-      setWorkExperience(data || []);
+      return data || [];
     } catch (error) {
       console.error('Error fetching user experience:', error);
     }
   };
 
   const handleUserSelect = async (userId: string) => {
-    setSelectedUser(userId);
-    await Promise.all([
-      fetchUserEducation(userId),
-      fetchUserExperience(userId)
-    ]);
+    try {
+      if (selectedUserId === userId) {
+        setSelectedUserId(null);
+        setUserDetails(null);
+        return;
+      }
+      
+      setSelectedUserId(userId);
+      const [education, experience] = await Promise.all([
+        fetchUserEducation(userId),
+        fetchUserExperience(userId)
+      ]);
+      setUserDetails({ education, experience });
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    }
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -100,9 +117,7 @@ const UsersTab: React.FC = () => {
 
       // Update local state
       setUsers(users.filter(user => user.user_id !== userId));
-      setSelectedUser(null);
-      setUserEducation([]);
-      setWorkExperience([]);
+      setUserDetails(null);
     } catch (error) {
       console.error('Error deleting user:', error);
       alert('Error al eliminar el usuario. Por favor, inténtalo de nuevo.');
@@ -148,6 +163,14 @@ const UsersTab: React.FC = () => {
   };
 
   return (
+    <div className="space-y-4">
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-gray-600">Cargando usuarios...</p>
+        </div>
+      ) : (
+    <>
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
@@ -157,13 +180,13 @@ const UsersTab: React.FC = () => {
                 Nombre
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Documento
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Email
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Teléfono
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Situación Laboral
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Fecha de Registro
@@ -177,11 +200,20 @@ const UsersTab: React.FC = () => {
             {users.map((user) => (
               <tr 
                 key={user.id} 
-                className={`hover:bg-gray-50 ${selectedUser === user.user_id ? 'bg-gray-50' : ''}`}
-                onClick={() => handleUserSelect(user.user_id!)}
+                className={`hover:bg-gray-50 ${selectedUserId === user.user_id ? 'bg-gray-50' : ''}`}
               >
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="flex items-center">
+                    <div className="text-sm font-medium text-gray-900">
+                      {user.nombre} {user.apellido}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-500">
+                    {user.tipo_documento && user.numero_documento ? 
+                      `${user.tipo_documento}: ${user.numero_documento}` : 
+                      'No especificado'}
                     {user.nombre} {user.apellido}
                   </div>
                 </td>
@@ -191,15 +223,6 @@ const UsersTab: React.FC = () => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-500">{user.telefono}</div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    user.situacion_laboral === 'Trabajo'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {user.situacion_laboral || 'No especificado'}
-                  </span>
-                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {new Date(user.created_at).toLocaleDateString('es-ES', {
                     year: 'numeric',
@@ -208,6 +231,13 @@ const UsersTab: React.FC = () => {
                   })}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <button
+                    onClick={() => handleUserSelect(user.user_id!)}
+                    className="text-primary hover:text-primary-light mr-3"
+                    title="Ver detalles"
+                  >
+                    <Eye size={18} />
+                  </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -235,78 +265,99 @@ const UsersTab: React.FC = () => {
         </table>
       </div>
 
-      {selectedUser && (
-        <div className="p-6 border-t border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Información Detallada
-          </h3>
+      {selectedUserId && userDetails && (
+        <div className="border-t border-gray-200">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Información Detallada
+              </h3>
+              <button
+                onClick={() => {
+                  setSelectedUserId(null);
+                  setUserDetails(null);
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                Cerrar
+              </button>
+            </div>
 
-          {/* User's Education */}
-          <div className="mb-6">
-            <h4 className="text-md font-medium text-gray-700 mb-3">Formación</h4>
-            {userEducation.length > 0 ? (
-              <div className="space-y-3">
-                {userEducation.map((edu) => (
-                  <div key={edu.id} className="bg-gray-50 p-3 rounded-md">
-                    <div className="font-medium">{edu.titulo}</div>
-                    <div className="text-sm text-gray-600">{edu.institucion}</div>
-                    <div className="text-sm text-gray-500">
-                      {new Date(edu.fecha_inicio).toLocaleDateString('es-ES', { 
-                        year: 'numeric', 
-                        month: 'long' 
-                      })}
-                      {edu.fecha_fin ? ` - ${new Date(edu.fecha_fin).toLocaleDateString('es-ES', { 
-                        year: 'numeric', 
-                        month: 'long'
-                      })}` : ' - Actual'}
-                    </div>
-                    {edu.descripcion && (
-                      <div className="text-sm text-gray-600 mt-1">{edu.descripcion}</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-sm">No hay información de formación disponible</p>
-            )}
-          </div>
-
-          {/* User's Work Experience */}
-          <div>
-            <h4 className="text-md font-medium text-gray-700 mb-3">Experiencia Laboral</h4>
-            {userExperience.length > 0 ? (
-              <div className="space-y-3">
-                {userExperience.map((exp) => (
-                  <div key={exp.id} className="bg-gray-50 p-3 rounded-md">
-                    <div className="font-medium">{exp.puesto}</div>
-                    <div className="text-sm text-gray-600">{exp.empresa}</div>
-                    <div className="text-sm text-gray-500">
-                      {new Date(exp.fecha_inicio).toLocaleDateString('es-ES', { 
-                        year: 'numeric', 
-                        month: 'long' 
-                      })}
-                      {exp.is_current_job ? 
-                        ' - Actual' : 
-                        exp.fecha_fin ? 
-                          ` - ${new Date(exp.fecha_fin).toLocaleDateString('es-ES', { 
+            {/* User Details Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Education Section */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center mb-4">
+                  <GraduationCap className="text-primary mr-2" size={20} />
+                  <h4 className="text-md font-medium text-gray-700">Formación</h4>
+                </div>
+                {userDetails.education.length > 0 ? (
+                  <div className="space-y-3">
+                    {userDetails.education.map((edu) => (
+                      <div key={edu.id} className="bg-white p-3 rounded-md shadow-sm">
+                        <div className="font-medium">{edu.titulo}</div>
+                        <div className="text-sm text-gray-600">{edu.institucion}</div>
+                        <div className="text-sm text-gray-500">
+                          {new Date(edu.fecha_inicio).toLocaleDateString('es-ES', { 
+                            year: 'numeric', 
+                            month: 'long' 
+                          })}
+                          {edu.fecha_fin ? ` - ${new Date(edu.fecha_fin).toLocaleDateString('es-ES', { 
                             year: 'numeric', 
                             month: 'long'
-                          })}` : 
-                          ''
-                      }
-                    </div>
-                    {exp.descripcion && (
-                      <div className="text-sm text-gray-600 mt-1">{exp.descripcion}</div>
-                    )}
+                          })}` : ' - Actual'}
+                        </div>
+                        {edu.descripcion && (
+                          <div className="text-sm text-gray-600 mt-1">{edu.descripcion}</div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
+                ) : (
+                  <p className="text-gray-500 text-sm">No hay información de formación disponible</p>
+                )}
               </div>
-            ) : (
-              <p className="text-gray-500 text-sm">No hay información de experiencia laboral disponible</p>
-            )}
+
+              {/* Work Experience Section */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center mb-4">
+                  <Briefcase className="text-primary mr-2" size={20} />
+                  <h4 className="text-md font-medium text-gray-700">Experiencia Laboral</h4>
+                </div>
+                {userDetails.experience.length > 0 ? (
+                  <div className="space-y-3">
+                    {userDetails.experience.map((exp) => (
+                      <div key={exp.id} className="bg-white p-3 rounded-md shadow-sm">
+                        <div className="font-medium">{exp.puesto}</div>
+                        <div className="text-sm text-gray-600">{exp.empresa}</div>
+                        <div className="text-sm text-gray-500">
+                          {new Date(exp.fecha_inicio).toLocaleDateString('es-ES', { 
+                            year: 'numeric', 
+                            month: 'long' 
+                          })}
+                          {exp.is_current_job ? ' - Actual' : exp.fecha_fin ? 
+                            ` - ${new Date(exp.fecha_fin).toLocaleDateString('es-ES', { 
+                              year: 'numeric', 
+                              month: 'long'
+                            })}` : ''}
+                        </div>
+                        {exp.descripcion && (
+                          <div className="text-sm text-gray-600 mt-1">{exp.descripcion}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">No hay información de experiencia laboral disponible</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
+    </div>
+    </>
+    )}
     </div>
   );
 };
