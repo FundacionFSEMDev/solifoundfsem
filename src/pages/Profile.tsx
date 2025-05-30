@@ -41,7 +41,7 @@ const Profile: React.FC = () => {
         .select(`
           earned_at,
           achievements (
-            achievement_id:id,
+            achievement_unlockcode:id,
             name,
             description
           )
@@ -51,7 +51,7 @@ const Profile: React.FC = () => {
       if (error) throw error;
 
       const formattedAchievements = data.map(item => ({
-        id: item.achievements.achievement_id,
+        id: item.achievements.achievement_unlockcode,
         name: item.achievements.name,
         description: item.achievements.description,
         earned_at: item.earned_at
