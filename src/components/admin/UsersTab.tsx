@@ -24,13 +24,13 @@ const UsersTab: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data: users, error } = await supabase
         .from('loggedusers')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setUsers(data || []);
+      setUsers(users || []);
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
@@ -43,7 +43,7 @@ const UsersTab: React.FC = () => {
       const { data, error } = await supabase
         .from('education')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', userId) 
         .order('fecha_inicio', { ascending: false });
 
       if (error) throw error;
@@ -58,7 +58,7 @@ const UsersTab: React.FC = () => {
       const { data, error } = await supabase
         .from('work_experience')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', userId) 
         .order('fecha_inicio', { ascending: false });
 
       if (error) throw error;
@@ -93,31 +93,31 @@ const UsersTab: React.FC = () => {
     }
 
     try {
-      // Delete user's education records
-      await supabase
+      const { error: educationError } = await supabase
         .from('education')
         .delete()
         .eq('user_id', userId);
 
-      // Delete user's work experience records
-      await supabase
+      if (educationError) throw educationError;
+
+      const { error: experienceError } = await supabase
         .from('work_experience')
         .delete()
         .eq('user_id', userId);
 
-      // Delete user's profile
-      await supabase
+      if (experienceError) throw experienceError;
+
+      const { error: profileError } = await supabase
         .from('loggedusers')
         .delete()
         .eq('user_id', userId);
 
-      // Delete auth user
-      const { error } = await supabase.auth.admin.deleteUser(userId);
-      if (error) throw error;
+      if (profileError) throw profileError;
 
       // Update local state
       setUsers(users.filter(user => user.user_id !== userId));
       setUserDetails(null);
+      alert('Usuario eliminado correctamente');
     } catch (error) {
       console.error('Error deleting user:', error);
       alert('Error al eliminar el usuario. Por favor, inténtalo de nuevo.');
@@ -129,7 +129,7 @@ const UsersTab: React.FC = () => {
       const { data, error } = await supabase
         .from('loggedusers')
         .select('cv_data, cv_filename')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .single();
 
       if (error) throw error;
