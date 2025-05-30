@@ -24,13 +24,13 @@ const UsersTab: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const { data: users, error } = await supabase
+      const { data, error } = await supabase
         .from('loggedusers')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setUsers(users || []);
+      setUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
@@ -205,7 +205,7 @@ const UsersTab: React.FC = () => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="text-sm font-medium text-gray-900">
-                      {user.nombre} {user.apellido}
+                      {`${user.nombre} ${user.apellido}`}
                     </div>
                   </div>
                 </td>
@@ -232,7 +232,7 @@ const UsersTab: React.FC = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
-                    onClick={() => handleUserSelect(user.user_id!)}
+                    onClick={() => handleUserSelect(user.id)}
                     className="text-primary hover:text-primary-light mr-3"
                     title="Ver detalles"
                   >
@@ -241,7 +241,7 @@ const UsersTab: React.FC = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      downloadUserCV(user.user_id!);
+                      downloadUserCV(user.id);
                     }}
                     className="text-primary hover:text-primary-light mr-3"
                     title="Descargar CV"
@@ -251,7 +251,7 @@ const UsersTab: React.FC = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeleteUser(user.user_id!);
+                      handleDeleteUser(user.id);
                     }}
                     className="text-red-500 hover:text-red-600"
                     title="Eliminar usuario"
