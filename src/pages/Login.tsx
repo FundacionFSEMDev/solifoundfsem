@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Lock } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
 import FormInput from '../components/FormInput';
 import LoadingHamster from '../assets/loadinghamster';
 import { validateLoginForm } from '../utils/validation';
 import { FormData, FormErrors } from '../types';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -31,7 +37,7 @@ const Login: React.FC = () => {
     }
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const validationErrors = validateLoginForm(formData);
@@ -43,16 +49,28 @@ const Login: React.FC = () => {
     
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) throw error;
+
+      // Set success state and redirect
       setIsSubmitting(false);
       setLoginSuccess(true);
-      
-      // Redirect user after successful login (in a real app)
+
       setTimeout(() => {
         navigate('/profile');
       }, 1500);
-    }, 1000);
+    } catch (error) {
+      console.error('Error signing in:', error);
+      setIsSubmitting(false);
+      setErrors({
+        submit: 'Error al iniciar sesión. Por favor, verifica tus credenciales.'
+      });
+    }
   };
   
   return (
@@ -121,13 +139,21 @@ const Login: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="group relative w-full flex justify-center btn btn-primary"
+              className={`group relative w-full flex justify-center btn btn-primary ${
+                isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
             > 
               <span className="flex items-center">
                 <Lock size={16} className="mr-2" />
-                Iniciar Sesión
+                {isSubmitting ? 'Iniciando sesión...' : 'Iniciar Sesión'}
               </span>
             </button>
+            
+            {errors.submit && (
+              <p className="mt-2 text-sm text-red-500 text-center">
+                {errors.submit}
+              </p>
+            )}
           </form>
         )}
         
