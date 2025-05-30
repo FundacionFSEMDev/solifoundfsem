@@ -22,8 +22,7 @@ const AdminPanel: React.FC = () => {
   const checkAuthorization = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user || user.id !== '597ea0f1-5ed3-4764-8260-eabb8602b44a') {
+      if (!user || user.email !== 'sistemas@fundacionsanezequiel.org') {
         setIsAuthorized(false);
         setLoading(false);
         return;
