@@ -180,12 +180,25 @@ const Profile: React.FC = () => {
   const checkUser = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) {
         navigate('/login');
         return;
       }
 
+      // First verify if this is the admin user
+      if (user.id === '597ea0f1-5ed3-4764-8260-eabb8602b44a') {
+        const { data: adminProfile, error: adminError } = await supabase
+          .from('loggedusers')
+          .select('*')
+          .eq('email', 'sistemas@fundacionsanezequiel.org')
+          .single();
+
+        if (adminError) throw adminError;
+        setUserProfile(adminProfile);
+        return;
+      }
+
+      // For regular users, fetch by user_id
       const { data: profile, error } = await supabase
         .from('loggedusers')
         .select('*')
@@ -193,7 +206,6 @@ const Profile: React.FC = () => {
         .single();
 
       if (error) throw error;
-      
       // Set CV file info if it exists
       if (profile.cv_filename && profile.cv_updated_at) {
         setCvFile({
