@@ -39,7 +39,6 @@ const Profile: React.FC = () => {
       const { data, error } = await supabase
         .from('user_achievements') 
         .select(`
-          achievement_id,
           earned_at,
           achievements!inner (
             id,
@@ -52,7 +51,7 @@ const Profile: React.FC = () => {
       if (error) throw error;
 
       const formattedAchievements = data.map(item => ({
-        id: item.achievement_id,
+        id: item.achievements.id,
         name: item.achievements.name,
         description: item.achievements.description,
         earned_at: item.earned_at
