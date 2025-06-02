@@ -24,6 +24,21 @@ const UsersTab: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No authenticated user');
+
+      // First verify if this is the admin user
+      const { data: adminCheck } = await supabase
+        .from('loggedusers')
+        .select('email')
+        .eq('user_id', user.id)
+        .single();
+
+      if (adminCheck?.email !== 'sistemas@fundacionsanezequiel.org') {
+        throw new Error('Unauthorized access');
+      }
+
+      // Fetch all users
       const { data, error } = await supabase
         .from('loggedusers')
         .select('*')
@@ -33,6 +48,7 @@ const UsersTab: React.FC = () => {
       setUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
