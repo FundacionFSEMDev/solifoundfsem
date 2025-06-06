@@ -88,12 +88,12 @@ const InformacionPersonal: React.FC<InformacionPersonalProps> = ({
 
       const reader = new FileReader();
       reader.onload = async () => {
-        const binaryStr = reader.result;
+        const base64Data = (reader.result as string).split(',')[1];
         
         const { error } = await supabase
           .from('loggedusers')
           .update({
-            cv_data: binaryStr,
+            cv_data: base64Data,
             cv_filename: file.name,
             cv_updated_at: new Date().toISOString()
           })
@@ -106,7 +106,7 @@ const InformacionPersonal: React.FC<InformacionPersonalProps> = ({
           lastUpdated: new Date().toISOString()
         });
       };
-      reader.readAsArrayBuffer(file);
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error('Error uploading CV:', error);
       alert('Error al subir el CV. Por favor, inténtalo de nuevo.');
